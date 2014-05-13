@@ -33,10 +33,6 @@ function mpp_enqueue_responsive_script() {
 
 }
 
-//* Add new image sizes
-add_image_size( 'blog', 340, 140, TRUE );
-add_image_size( 'portfolio', 340, 230, TRUE );
-
 //* Add support for custom header
 add_theme_support( 'custom-header', array(
 	'header_image'    => '',
@@ -156,3 +152,91 @@ genesis_register_sidebar( array(
 	'name'        => __( 'After Entry', 'mpp' ),
 	'description' => __( 'This is the after entry widget area.', 'mpp' ),
 ) );
+
+//* Remove the post meta function
+remove_action( 'genesis_entry_footer', 'genesis_post_meta' );
+
+//* Forcing read more link regardless off excerpt length
+function themprefix_excerpt_read_more_link($output) {
+    global $post;
+    return $output . ' <a href="' . get_permalink($post->ID) . '" class="more-link" title="Les mer">Les mer</a>';
+}
+add_filter( 'the_excerpt', 'themprefix_excerpt_read_more_link' );
+
+add_action('genesis_entry_footer', 'wpsites_image_nav_links', 25 );
+/**
+ * @author    Brad Dalton
+ * @example   http://wpsites.net/web-design/add-featured-images-to-previous-next-post-nav-links/
+ * @copyright 2014 WP Sites
+ */
+add_action('genesis_entry_footer', 'wpsites_image_nav_links', 25 );
+
+function wpsites_image_nav_links() {
+
+if( !is_singular('post') ) 
+      return;
+
+if( $prev_post = get_previous_post() ): 
+echo'<div class="single-post-nav previous-post-link">';
+echo'<h2>Forrige innlegg</h2>';
+$prevpost = get_the_post_thumbnail( $prev_post->ID, 'medium', array('class' => 'pagination-previous')); 
+previous_post_link( '%link',"$prevpost", TRUE ); 
+previous_post_link( '<div class="prev-link">%link</div>', '%title' );
+echo'</div>';
+endif; 
+
+if( $next_post = get_next_post() ): 
+echo'<div class="single-post-nav next-post-link">';
+echo'<h2>Neste innlegg</h2>';
+$nextpost = get_the_post_thumbnail( $next_post->ID, 'medium', array('class' => 'pagination-next')); 
+next_post_link( '%link',"$nextpost", TRUE );
+next_post_link( '<div class="next-link">%link</div>', '%title' );
+echo'</div>';
+endif; 
+} 
+//* Remove the author box on single posts
+remove_action( 'genesis_after_post', 'genesis_do_author_box_single' );
+
+//* Customize the credits
+add_filter( 'genesis_footer_creds_text', 'sp_footer_creds_text' );
+function sp_footer_creds_text() {
+	echo '<div class="creds"><p>';
+	echo 'Copyright &copy; ';
+	echo date('Y');
+	echo ' &middot; <a href="http://stillingen.com">www.stillingen.com</a>';
+	echo '</p></div>';
+}
+//* Register Home Slider widget area
+genesis_register_sidebar( array(
+	'id'          => 'home-slider',
+	'name'        => __( 'Home Slider', 'mpp' ),
+	'description' => __( 'This is the home slider widget area.', 'mpp' ),
+) );
+
+//* Add custom Slider + Header wrapper's opening div tag
+add_action( 'genesis_before_header', 'sk_home_opening_div' );
+function sk_home_opening_div() {
+
+	if (! is_front_page() )
+		return;
+
+	echo '<div class="slider-header-wrapper">';
+
+	genesis_widget_area( 'home-slider', array(
+		'before' => '<div id="home-slider">',
+		'after'  => '</div>',
+	) );
+
+}
+
+//* Add custom Slider + Header wrapper's closing div tag
+add_action( 'genesis_after_header', 'sk_home_closing_div' );
+function sk_home_closing_div() {
+
+	if (! is_front_page() )
+		return;
+
+	echo '</div>';
+
+}
+?>
